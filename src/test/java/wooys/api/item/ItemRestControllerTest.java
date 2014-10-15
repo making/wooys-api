@@ -27,8 +27,7 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -120,9 +119,66 @@ public class ItemRestControllerTest {
                 "* hello world!",
                 Arrays.asList(new TagRequest("hoge")));
         Item item = qiitaClient.items().create(request);
-        System.out.println(item);
+        assertThat(item.getBody(), is(request.getBody()));
+        assertThat(item.getTitle(), is(request.getTitle()));
+        assertThat(item.getUser(), is(notNullValue()));
+        assertThat(item.getTags(), hasSize(1));
+        assertThat(item.getTags().get(0).getName(), is(request.getTags().get(0).getName()));
+        assertThat(item.getCreatedAt(), is(notNullValue()));
+        assertThat(item.getUpdatedAt(), is(notNullValue()));
+        assertThat(item.getId(), is(notNullValue()));
+        assertThat(item.getId().length(), is(20));
+
         List<Item> items = qiitaClient.items().list();
         assertThat(items, hasSize(3));
+        assertThat(items.get(2), is(item));
+    }
+
+    @Test
+    public void testCreateTwice() throws Exception {
+        Item item1;
+        Item item2;
+        {
+            ItemRequest request = new ItemRequest(
+                    "new item from JQiita",
+                    "* hello world!",
+                    Arrays.asList(new TagRequest("hoge")));
+            Item item = qiitaClient.items().create(request);
+            assertThat(item.getBody(), is(request.getBody()));
+            assertThat(item.getTitle(), is(request.getTitle()));
+            assertThat(item.getUser(), is(notNullValue()));
+            assertThat(item.getTags(), hasSize(1));
+            assertThat(item.getTags().get(0).getName(), is(request.getTags().get(0).getName()));
+            assertThat(item.getCreatedAt(), is(notNullValue()));
+            assertThat(item.getUpdatedAt(), is(notNullValue()));
+            assertThat(item.getId(), is(notNullValue()));
+            assertThat(item.getId().length(), is(20));
+            item1 = item;
+        }
+        {
+            ItemRequest request = new ItemRequest(
+                    "Hello!",
+                    "* This is test!",
+                    Arrays.asList(new TagRequest("hoge"), new TagRequest("foo"), new TagRequest("bar")));
+            Item item = qiitaClient.items().create(request);
+            assertThat(item.getBody(), is(request.getBody()));
+            assertThat(item.getTitle(), is(request.getTitle()));
+            assertThat(item.getUser(), is(notNullValue()));
+            assertThat(item.getTags(), hasSize(3));
+            assertThat(item.getTags().get(0).getName(), is(request.getTags().get(0).getName()));
+            assertThat(item.getTags().get(1).getName(), is(request.getTags().get(1).getName()));
+            assertThat(item.getTags().get(2).getName(), is(request.getTags().get(2).getName()));
+            assertThat(item.getCreatedAt(), is(notNullValue()));
+            assertThat(item.getUpdatedAt(), is(notNullValue()));
+            assertThat(item.getId(), is(notNullValue()));
+            assertThat(item.getId().length(), is(20));
+            item2 = item;
+        }
+
+        List<Item> items = qiitaClient.items().list();
+        assertThat(items, hasSize(4));
+        assertThat(items.get(2), is(item1));
+        assertThat(items.get(3), is(item2));
     }
 
     @Test

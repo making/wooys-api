@@ -6,6 +6,8 @@ import jqiita.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import wooys.domain.model.ItemModel;
+import wooys.domain.model.TagModel;
+import wooys.domain.model.UserModel;
 import wooys.domain.repository.item.ItemRepository;
 import wooys.domain.repository.tag.TagRepository;
 import wooys.domain.repository.user.UserRepository;
@@ -39,12 +41,20 @@ public class ItemService {
 
     public Item create(ItemRequest request, User user) {
         ItemModel model = ItemModel.newFromItemRequest(request, user);
-        if (!userRepository.exists(model.getUser().getId())) {
-            userRepository.saveAndFlush(model.getUser());
+        UserModel userModel = userRepository.findOne(model.getUser().getId());
+        if (userModel == null) {
+            userModel = model.getUser();
+            userRepository.saveAndFlush(userModel);
+        } else {
+            model.setUser(userModel);
         }
         model.getTags().forEach(itemTag -> {
-            if (!tagRepository.exists(itemTag.getName().getId())) {
-                tagRepository.save(itemTag.getName());
+            TagModel tagModel = tagRepository.findOne(itemTag.getName().getId());
+            if (tagModel == null) {
+                tagModel = itemTag.getName();
+                tagRepository.save(tagModel);
+            } else {
+                itemTag.setName(tagModel);
             }
         });
         tagRepository.flush();
