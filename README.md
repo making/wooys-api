@@ -1,4 +1,7 @@
 # Wooys API
+
+[![Build Status](https://travis-ci.org/making/wooys-api.svg?branch=master)](https://travis-ci.org/making/wooys-api)
+
 Wooys is a clone of [Qiita](http://qiita.com/).
 
     Q -> W
